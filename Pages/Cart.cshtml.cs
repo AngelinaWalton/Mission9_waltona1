@@ -14,30 +14,33 @@ namespace Mission9_waltona1.Pages
 
         private IBookStoreRepository repo { get; set; }
 
-        public CartModel (IBookStoreRepository temp)
-        {
-            repo = temp;
-        }
         public Basket basket { get; set; }
         public string ReturnUrl { get; set; }
+        public CartModel (IBookStoreRepository temp, Basket b)
+        {
+            repo = temp;
+            basket = b;
+        }
 
         public void OnGet(string returnUrl)
         {
             ReturnUrl = returnUrl ?? "/";
-            basket = HttpContext.Session.GetJson<Basket>("basket") ?? new Basket();
         }
 
         public IActionResult OnPost(int bookId, string returnUrl)
         {
             Books b = repo.Books.FirstOrDefault(x => x.BookId == bookId);
 
-            basket = HttpContext.Session.GetJson<Basket>("basket") ?? new Basket();
-
             basket.AddItem(b, 1, b.Price);
-
-            HttpContext.Session.SetJson("basket", basket);
 
             return RedirectToPage(new { ReturnUrl = returnUrl});
         }
+
+        public IActionResult OnPostRemove(int bookId, string returnUrl)
+        {
+            basket.RemoveItem(basket.Items.First(x => x.Books.BookId == bookId).Books);
+
+            return RedirectToPage(new {returnUrl = returnUrl});
+        } 
     }
 }
